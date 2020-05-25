@@ -5,7 +5,7 @@ import numpy as np
 import datetime
 import itertools
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+#from matplotlib.animation import FuncAnimation
 
 URL_CORONA_INFECTED = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/" + \
                       "csse_covid_19_data/csse_covid_19_time_series/" + \
@@ -98,7 +98,8 @@ class Corona:
             loes = "| Total " + data + ": " + zusatz + str(self.total(frames[data])) 
             print(loes, end=" ")
         self.zwischenlinie()
-        #today, mean, week
+        
+        #today, mean total, mean week
         for data in frames:
             anzZus = breite - len(data) - 4*len(" ") - len("Today:") - len(str(self.today(frames[data])))
             zusatz = "".join(c for c in itertools.repeat(" ", anzZus))
@@ -204,15 +205,36 @@ class Corona:
         print("Total Recovered:\t%10d" % self.rec[self.col[-1]].sum())
         print("Total Deaths:\t\t%10d" % self.dt[self.col[-1]].sum())
         
+    def weekend(self, country: str, state: str):
+        inf = self.prep(self.inf, country, state)
+        col = inf.columns.values
+        weekend = []
+        weekday = []
+        for index in range(3, len(col)):
+            inf.iloc[0, index-1] = inf.iloc[0, index] - inf.iloc[0, index -1]
+        for index in range(2, len(col)-1):
+            datum = datetime.datetime.strptime(col[index], "%m/%d/%y")
+            if(datum.weekday() == 5 or datum.weekday() == 6):
+                inf = inf.rename(columns={col[index]: "Weekend"})
+                weekend.append(inf.iloc[0, index])
+            else:
+                inf = inf.rename(columns={col[index]: "Weekday"})
+                weekday.append(inf.iloc[0, index])
+        inf = inf.drop(columns=col[-1])
+        inf.to_excel("Täglich Infizierte.xlsx")
+        print("Durchschnittliche Anzahl Infizierte unter der Woche:", round(np.array(weekday).sum()/len(weekday),2))
+        print("Durchschnittliche Anzahl Infizierte am Wochenende:\t", round(np.array(weekend).sum()/len(weekend),2))                                       
 def main():
     c = Corona()
-    c.print_statistics("Russia", "total")
-    #c.plot_data("Germany", "total", True)
-    #c.plot_current_infected("Spain", "total", False)
-    #c.plot_diff("Germany", "total", True)
+    '''
+    c.print_statistics("Germany", "total")
+    c.plot_data("Germany", "total", False)
+    c.plot_current_infected("Germany", "total", False)
+    c.plot_diff("Germany", "total", False)
     c.print_reProdZahl("Germany", "total")
-    #c.plot_above_treshold("Germany", "total", True)
+    c.plot_above_treshold("Germany", "total", False)
     c.globalTotal()
-
+    '''
+    c.weekend("Germany", "total")
 if __name__ == "__main__":
     main()
