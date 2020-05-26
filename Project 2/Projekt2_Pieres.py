@@ -184,7 +184,7 @@ class Corona:
         if log == True: plt.yscale("log")
         plt.xticks(range(0,len(col),ticks), col[::ticks])
         plt.plot(col, diffInf, "y", label="Infected")
-        #keine schöne Lösung
+        #keine schöne Lösung (enumerate anschauen)
         for index in range(0,len(infAbove)):
             if infAbove[index] == True:
                 plt.axvspan(index, index+1, facecolor = "r", alpha=0.2)
@@ -210,6 +210,7 @@ class Corona:
         col = inf.columns.values
         weekend = []
         weekday = []
+        #hier möglicherweise mit lambda-Funktionen vereinfachen?
         for index in range(3, len(col)):
             inf.iloc[0, index-1] = inf.iloc[0, index] - inf.iloc[0, index -1]
         for index in range(2, len(col)-1):
@@ -221,20 +222,23 @@ class Corona:
                 inf = inf.rename(columns={col[index]: "Weekday"})
                 weekday.append(inf.iloc[0, index])
         inf = inf.drop(columns=col[-1])
-        inf.to_excel("Täglich Infizierte.xlsx")
         print("Durchschnittliche Anzahl Infizierte unter der Woche:", round(np.array(weekday).sum()/len(weekday),2))
         print("Durchschnittliche Anzahl Infizierte am Wochenende:\t", round(np.array(weekend).sum()/len(weekend),2))                                       
+        
 def main():
     c = Corona()
-    '''
+    
     c.print_statistics("Germany", "total")
-    c.plot_data("Germany", "total", False)
+    '''
+    c.plot_data("China", "total", False)
     c.plot_current_infected("Germany", "total", False)
     c.plot_diff("Germany", "total", False)
     c.print_reProdZahl("Germany", "total")
     c.plot_above_treshold("Germany", "total", False)
     c.globalTotal()
-    '''
+    
     c.weekend("Germany", "total")
+    '''
+    
 if __name__ == "__main__":
     main()
