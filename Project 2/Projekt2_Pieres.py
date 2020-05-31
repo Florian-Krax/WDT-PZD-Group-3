@@ -17,6 +17,8 @@ URL_CORONA_DEATHS = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/m
                       "csse_covid_19_data/csse_covid_19_time_series/" + \
                       "time_series_covid19_deaths_global.csv"
 
+#insgesamt besser alles mit numpy ausarbeiten
+
 class Corona:
     def __init__(self):
         self.inf = pd.read_csv(URL_CORONA_INFECTED)
@@ -77,7 +79,7 @@ class Corona:
 
     def print_statistics(self, country: str, state: str, treshold = 1000):
 
-        #vielleicht alles als Klasse implementieren und dann inf, rec, dt, col als Attribute (so muss nur beim Start einmal initialisiert werden)
+        #Modul tabulate könnte auch installiert und verwendet werden
 
         inf = self.prep(self.inf, country, state)
         rec = self.prep(self.rec, country, state)
@@ -228,7 +230,7 @@ class Corona:
 def main():
     c = Corona()
     
-    c.print_statistics("Germany", "total")
+    c.print_statistics("Australia", "total")
     '''
     c.plot_data("China", "total", False)
     c.plot_current_infected("Germany", "total", False)
