@@ -230,8 +230,8 @@ class Corona:
 def main():
     c = Corona()
     
-    c.print_statistics("Australia", "total")
-    '''
+    c.print_statistics("US", "total")
+    
     c.plot_data("China", "total", False)
     c.plot_current_infected("Germany", "total", False)
     c.plot_diff("Germany", "total", False)
@@ -239,8 +239,8 @@ def main():
     c.plot_above_treshold("Germany", "total", False)
     c.globalTotal()
     
-    c.weekend("Germany", "total")
-    '''
+    #c.weekend("Germany", "total")
+    
     
 if __name__ == "__main__":
     main()

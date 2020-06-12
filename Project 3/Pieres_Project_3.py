@@ -141,7 +141,7 @@ def entwicklungV2(country: list):
 def main():
     entwicklung(["Germany", "Finland", "Denmark"])
     #entwicklungV2(["Germany", "Finland"])
-    #rankingDetail()
+    rankingDetail()
     einzel()
     #whereToGo()
     #rankingLifeLadder(2013)
