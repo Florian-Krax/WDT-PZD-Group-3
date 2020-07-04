@@ -73,28 +73,32 @@ def stadtEntwicklung(stadt: str):
     for index, df in enumerate(frames):
         col = list(df.columns.values)
         data = df.loc[df["City/Town"] == stadt]
-        if data["Year"].count() > 0:
+        if data["Year"].count() > 2:
             xp = np.linspace(min(data["Year"]), max(data["Year"]), 100)
             anMean = np.array(data[col[5]])
             p = np.poly1d(np.polyfit(data["Year"], anMean, 1))
             plt.plot(data["Year"], anMean, "o", xp, p(xp), c = color[index])
-            plt.title(stadt)
-        else:
+        elif data["Year"].count() == 0:
             print("Die angegebene Stadt wurde nicht gefunden")
             break
+        else:
+            print("Zu dieser Stadt gibt es nicht genug Datenpunkte")
+            break
+    plt.title(stadt)
     plt.show()
 
 def stadtRanking(country: str, asc = True):
     global pm10
     global pm25
     
-    frames = [pm10, pm25]
-    for df in frames:
+    frames = {"PM10": pm10, "PM2.5": pm25}
+    for key in frames:
+        df = frames[key]
         col = list(df.columns.values)
         data = df.loc[df["Year"] == 2016]
         data = data.loc[data["Country"] == country].sort_values(col[5], ascending=asc)
         data = data.loc[:, ["City/Town", col[5]]]
-        print("Top 10 Ranking(Best):") if asc == True else print("Top 10 Ranking(Worst):")
+        print("Top 10 Ranking",key,"(Best):") if asc == True else print("Top 10 Ranking",key,"(Worst):")
         print(data.head(10), "\n")
 
 def aufbereitung():
@@ -121,8 +125,8 @@ def aufbereitung():
 
 def main():
     aufbereitung()
-    #einkommensVergleich()
-    #stadtRanking("China", False)
+    einkommensVergleich()
+    stadtRanking("China", False)
     stadtEntwicklung("Beijing")
 
 if __name__ == "__main__":
