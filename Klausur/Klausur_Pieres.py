@@ -22,7 +22,8 @@ def einkommensVergleich():
     #Feinstaub EU- & WHO-Grenzwert PM10 -> 40 Mikrorgamm pro Kubikmeter (Quelle: Umweltbundesamt)
     #Feinstaub EU-Grenzwert PM2.5 -> 25 Mikrogramm pro Kubikmeter (Quelle: Umweltbundesamt)
     
-    print("Prozentualer Anteil der Städte, die die WHO-Grenzwerte einhalten.\n")
+    print("Prozentualer Anteil der Städte, die die ")
+    print("WHO-Grenzwerte einhalten.\n")
     pm = pd.read_excel("aap_air_quality_database_2018_v14.xlsx", sheet_name = "latest availble PM25 (measured)", skiprows = 2)
     pm = pm.drop(columns = pm.iloc[:,5:8])
     col = list(pm.columns.values)
@@ -70,15 +71,16 @@ def einkommensVergleich():
                 #percentage.append("No values")
                 print("# No values #")
         zwischenlinie(length)
-
+    print("\n")
     
 def stadtEntwicklung(stadt: str):
     global pm10
     global pm25
     
-    frames = [pm10, pm25]
+    frames = {"PM10": pm10, "PM2.5": pm25}
     color = ["blue", "red"]
-    for index, df in enumerate(frames):
+    for index, key in enumerate(frames):
+        df = frames[key]
         col = list(df.columns.values)
         data = df.loc[df["City/Town"] == stadt]
         
@@ -88,7 +90,9 @@ def stadtEntwicklung(stadt: str):
             xp = np.linspace(min(data["Year"]), max(data["Year"]), 100)
             anMean = np.array(data[col[5]])
             p = np.poly1d(np.polyfit(data["Year"], anMean, 1))
-            plt.plot(data["Year"], anMean, "o", xp, p(xp), c = color[index])
+            plt.plot(data["Year"], anMean, "o", c=color[index])
+            plt.plot(xp, p(xp), c = color[index], label = key)
+            plt.xticks(np.arange(min(data["Year"]), max(data["Year"])+1))
         elif data["Year"].count() == 0:
             print("Die angegebene Stadt wurde nicht gefunden")
             break
@@ -96,6 +100,7 @@ def stadtEntwicklung(stadt: str):
             print("Zu dieser Stadt gibt es nicht genug Datenpunkte")
             break
     plt.title(stadt)
+    plt.legend(loc="best")
     plt.show()
 
 def stadtRanking(country: str, asc = True):
@@ -161,8 +166,9 @@ def aufbereitung():
 def main():
     aufbereitung()
     einkommensVergleich()
-    stadtRanking("China", False)
-    stadtEntwicklung("Beijing")
+    stadtRanking("India", False)
+    stadtRanking("India")
+    stadtEntwicklung("Pasakha")
 
 if __name__ == "__main__":
     main()
