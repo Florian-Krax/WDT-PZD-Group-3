@@ -262,12 +262,61 @@ def aufbereitung():
             df.temp_coverage.replace(cover, index, inplace = True)   
         df.monitor_station_count= [GetStationCount(x) for x in df.monitor_station_count]
 
+
+def UebersichtMessstationen():
+    r"""
+    
+    In dieser Methode wird lediglich eine Donut-Diagram 
+    zur Verteilung der Anzahl an Messtationen geplottet.
+
+    Returns
+    -------
+    None.
+
+    """
+    regions = pm10.region.unique()
+    data=[]
+    for element in regions :
+        data.append(pm10.loc[pm10.region == element].monitor_station_count.sum())
+    plt.pie(data, labels= regions,wedgeprops=dict(width=0.5))
+    plt.title("Verteilung Anzahl an Messstationen nach Kontinenten")
+    plt.show()
+
+def UebersichtWertVerteilung():
+    r"""
+    
+    In dieser Methode werden alle Datenpunkte (PM10 und PM25)
+    in einem Scatter Diagramm angezeigt.
+    Dies zeigt die Verteilung der Datenpunkte an nach Regionen.
+    
+
+    Returns
+    -------
+    None.
+
+    """
+    regions = pm10.region.unique()
+    plt.figure(figsize=(12, 12), dpi= 100)
+    for element in regions:
+        data10=pm10.loc[pm10.region == element]
+        data25=pm25.loc[pm25.region == element]       
+        plt.scatter(data25.annual_mean,data10.annual_mean, label=element, s=3)  
+    plt.title("DatenPunkte (PM2.5 , PM10) Jahresdurchschnitt nach Regionen")
+    plt.xlabel("PM2.5 (annual mean)")
+    plt.ylabel("PM10 (annual mean)")
+    plt.legend()
+    plt.show()
+
+
 def main():
     aufbereitung()
-    for key in PMLimits:
-        einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
-    stadtRanking("India", False)
-    stadtEntwicklung("Berlin")
-
+    #for key in PMLimits:
+    #    einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
+    #stadtRanking("India", False)
+    #stadtEntwicklung("Berlin")
+    UebersichtMessstationen()
+    UebersichtWertVerteilung()
+    
+    
 if __name__ == "__main__":
     main()
