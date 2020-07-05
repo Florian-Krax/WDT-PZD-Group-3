@@ -11,18 +11,18 @@ pd.options.display.max_columns = None
 pm10 = pm.drop(columns=pm.iloc[:,8:11])
 pm25 = pm.drop(columns=pm.iloc[:,5:8])
 
-pm = pd.read_excel("aap_air_quality_database_2018_v14.xlsx", sheet_name = "latest availble PM25 (measured)", skiprows = 2)
-pm10_latest = pm.drop(columns = pm.iloc[:,5:8])
+pm = pd.read_csv("aap_air_quality_database_2018_v14_pm10_latest.csv")
+pm10_latest = pm.drop(columns = pm.iloc[:,8:11])
 
+pm = pd.read_csv("aap_air_quality_database_2018_v14_pm25_latest.csv")
+pm25_latest = pm.drop(columns = pm.iloc[:,5:8])
 
-pm = pd.read_excel("aap_air_quality_database_2018_v14.xlsx", sheet_name = "latest availble PM10 (measured)", skiprows = 2)
-pm25_latest = pm.drop(columns = pm.iloc[:,8:11])
 #data = {"PM10": pm10, "PM2.5": pm25}
 
 #Feinstaub EU- & WHO-Grenzwert PM10 -> 40 Mikrorgamm pro Kubikmeter (Quelle: Umweltbundesamt)
 #Feinstaub EU-Grenzwert PM2.5 -> 25 Mikrogramm pro Kubikmeter (Quelle: Umweltbundesamt)
 #feststehende Grenzwerte 
-PMLimits={"PM10": 40, "PM25": 25}
+PMLimits={"PM10": [40, pm10_latest], "PM25": [25, pm25_latest]}
 
 #im Folgenden wird häufig col[5] verwendet -> damit wird die Spalte der jährlichen 
 #Werte ausgewählt
@@ -33,23 +33,11 @@ def zwischenlinie(length: int):
 def einkommensVergleich(df:pd.DataFrame, limit:int, df_info:str):
     
     
-    print("Prozentualer Anteil der Städte, die die ")
-    print("WHO-Grenzwerte einhalten.\n")
-    pm = pd.read_excel("aap_air_quality_database_2018_v14.xlsx", sheet_name = "latest availble PM25 (measured)", skiprows = 2)
-    pm = pm.drop(columns = pm.iloc[:,5:8])
-    col = list(pm.columns.values)
-    pm25Gr = 25
-    pm["Limit"] = pm[col[5]] <= pm25Gr
-    income = ["LMIC", "HIC"]
-    print("Prozentualer Anteil der Städte, die die WHO-Grenzwerte einhalten (", df_info,")\n" )
-    #pm = pd.read_excel("aap_air_quality_database_2018_v14.xlsx", sheet_name = "latest availble PM25 (measured)", skiprows = 2)
-    #pm = pm.drop(columns = pm.iloc[:,5:8])
+    print(str("Prozentualer Anteil der Städte, die die \nWHO-Grenzwerte einhalten (" + df_info +")\n" ))
     
-    #col = list(pm.columns.values)
-    #pm25Gr = 25
-    
-    df["Limit"] = df.annual_mean <= limit
-    HighIncome = [ False,True]
+    df["limit"] = df.annual_mean <= limit
+    #print(df)
+    HighIncome = [False,True]
     #Die Kontinente ggf. über replace HIC, LMIC in Python ermitteln lassen -> Vermeidung von Tippfehlern
     continents = ["Africa", "Americas", "Eastern Mediterranean", "Europe", "South-East Asia", "Western Pacific"]
     
@@ -66,44 +54,22 @@ def einkommensVergleich(df:pd.DataFrame, limit:int, df_info:str):
     print("# %5s" % "LMIC", end = " ")
     print("# %9s #" % "HIC")
     zwischenlinie(length)
-    
-#    def PrintValue(dataTmp:pd.DataFrame,ein:str):
-#         #Prüfen, ob der DataFrame überhaupt Daten enthält (gibt es HIC-Städte,
-#         #im jeweiligen Kontinent im Datensatz)
-#         if dataTemp.Region.count() > 0:
-#                p = round((dataTemp.Limit == True).sum()/dataTemp.Region.count()*100,2)
-#                
-#                #Die Raute am Ende muss nur bei HIC (letzte Spalte) eingefügt werden
-#                if ein == "LMIC":
-#                    print("# %5.2f" % p, end = " ")
-#                else:
-#                    format = "# %%%d.2f #" % lenNoV
-#                    print(format % p)    
-#         else:
-#                #percentage.append("No values")
-#                print("# No values #")
                 
     #Datenermittlung: Für jeden Kontinent in der Liste wird nach LMIC und HIC gefiltert,
     #ausgewertet und gleichzeitig ausgegeben.
     for con in continents:
-        data = df.loc[df.Region.str.contains(con)]
-        #data = df.Region.str.contains(con)
+        data = df.loc[df.region.str.contains(con)]
+        #print(data.Region.count())
         format = "# %%%ds" % maxCon
         print(format % con, end = " ")
-        #for ein in income:
-        #dataTemp = data.loc[data.HIC == True]
-       # PrintValue(dataTemp,"LMIC")
-        #dataTemp = data.loc[data.HIC == False]
-        #PrintValue(dataTemp,"HIC")
-       # zwischenlinie(length)
         
         for ein in HighIncome:
             dataTemp = data.loc[data.HIC==ein]
             
             #Prüfen, ob der DataFrame überhaupt Daten enthält (gibt es HIC-Städte,
             #im jeweiligen Kontinent im Datensatz)
-            if dataTemp.Region.count() > 0:
-                p = round((dataTemp.Limit == True).sum()/dataTemp.Region.count()*100,2)
+            if dataTemp.region.count() > 0:
+                p = round((dataTemp.limit == True).sum()/dataTemp.region.count()*100,2)
                 
                 #Die Raute am Ende muss nur bei HIC (letzte Spalte) eingefügt werden
                 if ein == False:
@@ -116,45 +82,35 @@ def einkommensVergleich(df:pd.DataFrame, limit:int, df_info:str):
                 print("# No values #")
         zwischenlinie(length)
     print("\n")
-<<<<<<< Updated upstream
-=======
 
 
->>>>>>> Stashed changes
     
 def stadtEntwicklung(stadt: str):
     global pm10
     global pm25
     
-    frames = {"PM10": pm10, "PM2.5": pm25}
+    frames = [pm10, pm25]
     color = ["blue", "red"]
-<<<<<<< Updated upstream
-    for index, key in enumerate(frames):
-        df = frames[key]
-        col = list(df.columns.values)
-        data = df.loc[df["City/Town"] == stadt]
-=======
     for index, df in enumerate(frames):
         #col = list(df.columns.values)
-        data = df.loc[df["City"] == stadt]
->>>>>>> Stashed changes
+        data = df.loc[df["city"] == stadt]
         
         #Die Regression soll nur durchgeführt werden, wenn mehr als zwei Datensätze
         #vorhanden sind.
-        if data["Year"].count() > 2:
-            xp = np.linspace(min(data["Year"]), max(data["Year"]), 100)
+        if data["year"].count() > 2:
+            xp = np.linspace(min(data["year"]), max(data["year"]), 100)
             anMean = np.array(data.annual_mean)
-            p = np.poly1d(np.polyfit(data["Year"], anMean, 1))
-            plt.plot(data["Year"], anMean, "o", c=color[index])
-            plt.plot(xp, p(xp), c = color[index], label = key)
-            plt.xticks(np.arange(min(data["Year"]), max(data["Year"])+1))
-        elif data["Year"].count() == 0:
+            p = np.poly1d(np.polyfit(data["year"], anMean, 1))
+            plt.plot(data["year"], anMean, "o")
+            plt.plot(xp, p(xp), c = color[index], label=stadt)
+        elif data["year"].count() == 0:
             print("Die angegebene Stadt wurde nicht gefunden")
             break
         else:
             print("Zu dieser Stadt gibt es nicht genug Datenpunkte")
             break
     plt.title(stadt)
+    plt.xticks(np.arange(min(data.year), max(data.year)+1))
     plt.legend(loc="best")
     plt.show()
 
@@ -182,13 +138,13 @@ def stadtRanking(country: str, asc = True):
     for key in frames:
         df = frames[key]
         #col = list(df.columns.values)
-        data = df.loc[df["Year"] == 2016]
-        data = data.loc[data["Country"] == country].sort_values("annual_mean", ascending=asc)
-        data = data.loc[:, ["City", "annual_mean"]]
+        data = df.loc[df["year"] == 2016]
+        data = data.loc[data["country"] == country].sort_values("annual_mean", ascending=asc)
+        data = data.loc[:, ["city", "annual_mean"]]
         print("Top 10 Ranking",key,"(Best):") if asc == True else print("Top 10 Ranking",key,"(Worst):")
         print(data.head(10), "\n")
-        plt.barh(data.head(10).City, data.head(10).annual_mean)    
-        plt.title(str("Top 10 Ranking Cities " +key+" (Best):"))  if asc == True else plt.title(str("Top 10 Ranking Cities " +key+" (Worst):"))    
+        plt.barh(data.head(10).city, data.head(10).annual_mean)    
+        plt.title(str("Top 10 Ranking Cities in " +country + " " +key+" (Best):"))  if asc == True else plt.title(str("Top 10 Ranking Cities in " +country+ " " +key+" (Worst):"))    
         plt.gca().invert_yaxis()
         plt.show()
        # plt.barh(data.head(10).annual_mean,width=5)
@@ -208,7 +164,7 @@ def aufbereitung():
     #ggf. weitere Spalten aufgrund von Nichtbetrachtung droppen
     #ggf. noch dropna    
     
-    cols = ['Region','iso3','Country','City','Year','annual_mean','temp_coverage','measured','monitor_station_count','Reference','DB','status','HIC']
+    cols = ['region','iso3','country','city','year','annual_mean','temp_coverage','measured','monitor_station_count','reference','db','status','HIC']
     global pm10
     global pm25
     frames = [pm10, pm25, pm10_latest, pm25_latest]
@@ -216,27 +172,21 @@ def aufbereitung():
                
         #Neue Spalte HIC
         df["HIC"]=df.Region
+        df.columns=cols
         #Bereinigen der Region Spalte
-        df.Region= df.Region.str.split('(').str[0]
+        df.region= df.region.str.split('(').str[0]
         #Zu einem logischen Attribut machen
         df.HIC=df.HIC.str.contains('HIC')
         
-        df.columns=cols
-        
         #Measured zu einem logischen Attribut machen
-        df.measured=df.measured.str.contains('measured',case=False)
+        df.measured=df.measured.str.contains('measured', case=False)
         
-            #col = list(df.columns.values)
         #Bereinigen von Annual mean --> nur noch Wert
         df.annual_mean.replace(r'\D', '', regex = True, inplace = True)
         df.annual_mean= df.annual_mean.astype(int)
         #Bereinigen von temo coverage --> 
         df.temp_coverage = df.temp_coverage.fillna(0)
         df.temp_coverage= df.temp_coverage.astype(str)
-            #df[col[5]].replace(r'\D', '', regex = True, inplace = True)
-            #df[col[5]] = df[col[5]].astype(int)
-            #df[col[6]] = df[col[6]].fillna(0)
-            #df[col[6]] = df[col[6]].astype(str)
         temp = list(df.temp_coverage.unique())
         temp.sort()
         for index, cover in enumerate(temp):
@@ -245,17 +195,10 @@ def aufbereitung():
 
 def main():
     aufbereitung()
-<<<<<<< Updated upstream
-    einkommensVergleich()
+    for key in PMLimits:
+        einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
     stadtRanking("India", False)
-    stadtRanking("India")
-    stadtEntwicklung("Pasakha")
-=======
-    einkommensVergleich(pm10_latest,PMLimits["PM10"],"PM10")
-    einkommensVergleich(pm25_latest,PMLimits["PM25"], "PM2.5")
-    stadtRanking("China", True)
-    stadtEntwicklung("Beijing")
->>>>>>> Stashed changes
+    stadtEntwicklung("Berlin")
 
 if __name__ == "__main__":
     main()
