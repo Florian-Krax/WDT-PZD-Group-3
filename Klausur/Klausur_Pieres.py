@@ -241,13 +241,11 @@ def aufbereitung():
     frames = [pm10, pm25, pm10_latest, pm25_latest]
     for df in frames:
                
-        #Neue Spalte HIC
-        df["HIC"]=df.Region
+        #Neue binäre Spalte HIC
+        df["HIC"]=df.Region.str.contains('HIC')
         df.columns=cols
         #Bereinigen der Region Spalte
         df.region= df.region.str.split('(').str[0]
-        #Zu einem logischen Attribut machen
-        df.HIC=df.HIC.str.contains('HIC')
         
         #Measured zu einem logischen Attribut machen
         df.measured=df.measured.str.contains('measured', case=False)
