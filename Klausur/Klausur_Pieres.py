@@ -22,7 +22,7 @@ pm25_latest = pm.drop(columns = pm.iloc[:,5:8])
 #Feinstaub EU- & WHO-Grenzwert PM10 -> 40 Mikrorgamm pro Kubikmeter (Quelle: Umweltbundesamt)
 #Feinstaub EU-Grenzwert PM2.5 -> 25 Mikrogramm pro Kubikmeter (Quelle: Umweltbundesamt)
 #feststehende Grenzwerte 
-PMLimits={"PM10": [40, pm10_latest], "PM25": [25, pm25_latest]}
+PMLimits={"PM10": [40, pm10_latest], "PM2.5": [25, pm25_latest]}
 
 def zwischenlinie(length: int):
     r"""
@@ -70,6 +70,7 @@ def einkommensVergleich(df:pd.DataFrame, limit:int, df_info:str):
     df["limit"] = df.annual_mean <= limit
     HighIncome = [False,True]
     continents = df.region.unique()
+    continents.sort()
     
     #Länge der längsten Strings ermitteln, um Zwischenlinie zu skalieren
     maxCon = max([len(x) for x in continents])
