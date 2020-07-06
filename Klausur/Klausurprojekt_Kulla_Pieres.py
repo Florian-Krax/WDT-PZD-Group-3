@@ -28,7 +28,6 @@ pm25_latest = pm.drop(columns = pm.iloc[:,5:8])
 #Feinstaub EU- & WHO-Grenzwert PM10 -> 40 Mikrorgamm pro Kubikmeter (Quelle: Umweltbundesamt)
 #Feinstaub EU-Grenzwert PM2.5 -> 25 Mikrogramm pro Kubikmeter (Quelle: Umweltbundesamt)
 #feststehende Grenzwerte 
-PMLimits={"PM10": [40, pm10_latest], "PM2.5": [25, pm25_latest]}
 plt.style.use("ggplot")
 
 def zwischenlinie(length: int):
@@ -315,6 +314,7 @@ def aufbereitung():
 
 def main():
     aufbereitung()
+    PMLimits={"PM10": [40, pm10_latest], "PM2.5": [25, pm25_latest]}
     for key in PMLimits:
         einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
     stadtRanking("India", False)
