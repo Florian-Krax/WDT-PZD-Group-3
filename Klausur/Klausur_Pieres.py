@@ -23,6 +23,7 @@ pm25_latest = pm.drop(columns = pm.iloc[:,5:8])
 #Feinstaub EU-Grenzwert PM2.5 -> 25 Mikrogramm pro Kubikmeter (Quelle: Umweltbundesamt)
 #feststehende Grenzwerte 
 PMLimits={"PM10": [40, pm10_latest], "PM2.5": [25, pm25_latest]}
+plt.style.use("ggplot")
 
 def zwischenlinie(length: int):
     r"""
@@ -131,12 +132,11 @@ def stadtEntwicklung(stadt: str):
     None.
 
     """
-    global pm10
-    global pm25
     
-    frames = [pm10, pm25]
+    frames = {"PM10": pm10, "PM2.5": pm25}
     color = ["blue", "red"]
-    for index, df in enumerate(frames):
+    for index, key in enumerate(frames):
+        df = frames[key]
         data = df.loc[df["city"] == stadt]
         
         #Die Regression soll nur durchgeführt werden, wenn mehr als zwei Datensätze
@@ -153,8 +153,8 @@ def stadtEntwicklung(stadt: str):
             p = np.poly1d(np.polyfit(data["year"], anMean, 1))
             
             #Visuelle Darstellung
-            plt.plot(data["year"], anMean, "o")
-            plt.plot(xp, p(xp), c = color[index], label=stadt)
+            plt.plot(data["year"], anMean, "o", c=color[index])
+            plt.plot(xp, p(xp), c = color[index], label=key)
         elif data["year"].count() == 0:
             print("Die angegebene Stadt wurde nicht gefunden")
             break
@@ -164,6 +164,8 @@ def stadtEntwicklung(stadt: str):
     plt.title(stadt)
     plt.xticks(np.arange(min(data.year), max(data.year)+1))
     plt.legend(loc="best")
+    plt.xlabel("Jahr")
+    plt.ylabel("Partikelmasse μg/m³")
     plt.show()
 
 def stadtRanking(country: str, asc = True):
@@ -183,8 +185,6 @@ def stadtRanking(country: str, asc = True):
     None.
 
     """
-    global pm10
-    global pm25
     
     frames = {"PM10": pm10, "PM2.5": pm25}
     for key in frames:
@@ -195,6 +195,7 @@ def stadtRanking(country: str, asc = True):
         plt.barh(data.head(10).city, data.head(10).annual_mean)    
         plt.title(str("Top 10 Ranking Cities in " +country + " " +key+" (Best):"))  if asc == True else plt.title(str("Top 10 Ranking Cities in " +country+ " " +key+" (Worst):"))    
         plt.gca().invert_yaxis()
+        plt.xlabel("Partikelmasse μg/m³")
         plt.show()
 
 def GetStationCount(value: str)->int:
@@ -219,6 +220,52 @@ def GetStationCount(value: str)->int:
         count += int(match)
     return count
 
+def uebersichtMessstationen():
+    r"""
+    
+    In dieser Methode wird lediglich ein Donut-Diagramm 
+    zur Verteilung der Anzahl an Messtationen geplottet.
+
+    Returns
+    -------
+    None.
+
+    """
+    regions = pm10.region.unique()
+    regions.sort()
+    data=[]
+    for element in regions :
+        data.append(pm10.loc[pm10.region == element].monitor_station_count.sum())
+    plt.pie(data, labels= regions,wedgeprops=dict(width=0.5))
+    plt.title("Verteilung Anzahl an Messstationen nach Kontinenten")
+    plt.show()
+
+def uebersichtWertVerteilung():
+    r"""
+    
+    In dieser Methode werden alle Datenpunkte (PM10 und PM25)
+    in einem Scatter Diagramm angezeigt.
+    Dies zeigt die Verteilung der Datenpunkte an nach Regionen.
+    
+
+    Returns
+    -------
+    None.
+
+    """
+    regions = pm10.region.unique()
+    plt.style.use("dark_background")
+    plt.figure(figsize=(12, 12), dpi= 100)
+    for element in regions:
+        data10=pm10.loc[pm10.region == element]
+        data25=pm25.loc[pm25.region == element]       
+        plt.scatter(data25.annual_mean,data10.annual_mean, label=element, s=3)  
+    plt.title("DatenPunkte (PM2.5 , PM10) Jahresdurchschnitt nach Regionen")
+    plt.xlabel("PM2.5 (annual mean)")
+    plt.ylabel("PM10 (annual mean)")
+    plt.legend()
+    plt.show()
+
 def aufbereitung():
     r"""
     
@@ -236,8 +283,6 @@ def aufbereitung():
     """
     
     cols = ['region','iso3','country','city','year','annual_mean','temp_coverage','measured','monitor_station_count','reference','db','status','HIC']
-    global pm10
-    global pm25
     frames = [pm10, pm25, pm10_latest, pm25_latest]
     for df in frames:
                
@@ -262,60 +307,15 @@ def aufbereitung():
             df.temp_coverage.replace(cover, index, inplace = True)   
         df.monitor_station_count= [GetStationCount(x) for x in df.monitor_station_count]
 
-
-def UebersichtMessstationen():
-    r"""
-    
-    In dieser Methode wird lediglich eine Donut-Diagram 
-    zur Verteilung der Anzahl an Messtationen geplottet.
-
-    Returns
-    -------
-    None.
-
-    """
-    regions = pm10.region.unique()
-    data=[]
-    for element in regions :
-        data.append(pm10.loc[pm10.region == element].monitor_station_count.sum())
-    plt.pie(data, labels= regions,wedgeprops=dict(width=0.5))
-    plt.title("Verteilung Anzahl an Messstationen nach Kontinenten")
-    plt.show()
-
-def UebersichtWertVerteilung():
-    r"""
-    
-    In dieser Methode werden alle Datenpunkte (PM10 und PM25)
-    in einem Scatter Diagramm angezeigt.
-    Dies zeigt die Verteilung der Datenpunkte an nach Regionen.
-    
-
-    Returns
-    -------
-    None.
-
-    """
-    regions = pm10.region.unique()
-    plt.figure(figsize=(12, 12), dpi= 100)
-    for element in regions:
-        data10=pm10.loc[pm10.region == element]
-        data25=pm25.loc[pm25.region == element]       
-        plt.scatter(data25.annual_mean,data10.annual_mean, label=element, s=3)  
-    plt.title("DatenPunkte (PM2.5 , PM10) Jahresdurchschnitt nach Regionen")
-    plt.xlabel("PM2.5 (annual mean)")
-    plt.ylabel("PM10 (annual mean)")
-    plt.legend()
-    plt.show()
-
-
 def main():
     aufbereitung()
-    #for key in PMLimits:
-    #    einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
-    #stadtRanking("India", False)
-    #stadtEntwicklung("Berlin")
-    UebersichtMessstationen()
-    UebersichtWertVerteilung()
+    for key in PMLimits:
+        einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
+    stadtRanking("India", False)
+    stadtEntwicklung("Beijing")
+    stadtEntwicklung("Pasakha")
+    uebersichtMessstationen()
+    uebersichtWertVerteilung()
     
     
 if __name__ == "__main__":
