@@ -1,3 +1,9 @@
+"""
+
+@authors: Armin Kulla, Hendrik Pieres
+
+"""
+
 import pandas as pd
 import itertools
 import numpy as np
