@@ -9,7 +9,6 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import re
-from scipy import stats
 
 pm = pd.read_csv("aap_air_quality_database_2018_v14.csv", skiprows=2, sep=";")
 pd.options.display.max_columns = None
@@ -29,7 +28,6 @@ pm25_latest = pm.drop(columns = pm.iloc[:,5:8])
 #Feinstaub EU- & WHO-Grenzwert PM10 -> 40 Mikrorgamm pro Kubikmeter (Quelle: Umweltbundesamt)
 #Feinstaub EU-Grenzwert PM2.5 -> 25 Mikrogramm pro Kubikmeter (Quelle: Umweltbundesamt)
 #feststehende Grenzwerte 
-plt.style.use("default")
 plt.style.use("ggplot")
 
 def zwischenlinie(length: int):
@@ -107,7 +105,7 @@ def einkommensVergleich(df:pd.DataFrame, limit:int, df_info:str):
             #Prüfen, ob der DataFrame überhaupt Daten enthält (gibt es HIC-Städte,
             #im jeweiligen Kontinent im Datensatz)
             if dataTemp.region.count() > 0:
-                p = round((len(dataTemp.loc[dataTemp.limit]))/len(dataTemp)*100,2)
+                p = round((dataTemp.limit == True).sum()/dataTemp.region.count()*100,2)
                 
                 #Die Raute am Ende muss nur bei HIC (letzte Spalte) eingefügt werden
                 if ein == False:
@@ -175,38 +173,6 @@ def stadtEntwicklung(stadt: str):
     plt.ylabel("Partikelmasse μg/m³")
     plt.show()
 
-def scipyRegression(stadt:str):
-    frames = {"PM10": pm10, "PM2.5": pm25}
-    color = ["blue", "red"]
-    for index, key in enumerate(frames):
-        df = frames[key]
-        data = df.loc[df["city"] == stadt]
-        
-        #Die Regression soll nur durchgeführt werden, wenn mehr als zwei Datensätze
-        #vorhanden sind.
-        if data["year"].count() > 2:
-            
-            #Slope = Steigung
-            #Intercept = Schnittpunkt mit der y-Achse
-            
-            #*rest, da insgesamt fünf Rückgabewerte, jedoch nur die ersten beiden interessant
-            slope, intercept, *rest = stats.linregress(data.year, data.annual_mean)
-            plt.plot(data.year, data.annual_mean, "o", c=color[index])
-            plt.plot(data.year, intercept+data.year*slope, c=color[index], label = key)
-        elif data["year"].count() == 0:
-            print("Die angegebene Stadt wurde nicht gefunden")
-            break
-        else:
-            print("Zu dieser Stadt gibt es nicht genug Datenpunkte")
-            break
-    plt.title(stadt)
-    plt.xticks(np.arange(min(data.year), max(data.year)+1))
-    plt.legend(loc="best")
-    plt.xlabel("Jahr")
-    plt.ylabel("Partikelmasse μg/m³")
-    plt.show()
-            
-
 def stadtRanking(country: str, asc = True):
     r"""
     
@@ -228,13 +194,11 @@ def stadtRanking(country: str, asc = True):
     frames = {"PM10": pm10, "PM2.5": pm25}
     for key in frames:
         df = frames[key]
-        #print(df.groupby("year").region.count())
         data = df.loc[df["year"] == 2016]
         data = data.loc[data["country"] == country].sort_values("annual_mean", ascending=asc)
         data = data.loc[:, ["city", "annual_mean"]]
-        plt.barh(data.head(10).city, data.head(10).annual_mean)
-        rank = "(Best):" if asc == True else "(Worst):"
-        plt.title(str("Top 10 Ranking Cities in " +country + " " + key + " " + rank))      
+        plt.barh(data.head(10).city, data.head(10).annual_mean)    
+        plt.title(str("Top 10 Ranking Cities in " +country + " " +key+" (Best):"))  if asc == True else plt.title(str("Top 10 Ranking Cities in " +country+ " " +key+" (Worst):"))    
         plt.gca().invert_yaxis()
         plt.xlabel("Partikelmasse μg/m³")
         plt.show()
@@ -272,14 +236,12 @@ def uebersichtMessstationen():
     None.
 
     """
-    """
     regions = pm10.region.unique()
     regions.sort()
     data=[]
     for element in regions :
         data.append(pm10.loc[pm10.region == element].monitor_station_count.sum())
-    """
-    plt.pie(pm10.groupby("region").monitor_station_count.sum(), labels= pm10.region.unique(),wedgeprops=dict(width=0.5))
+    plt.pie(data, labels= regions,wedgeprops=dict(width=0.5))
     plt.title("Verteilung Anzahl an Messstationen nach Kontinenten")
     plt.show()
 
@@ -356,10 +318,8 @@ def main():
     for key in PMLimits:
         einkommensVergleich(PMLimits[key][1],PMLimits[key][0], key)
     stadtRanking("India", False)
-    #stadtEntwicklung("Beijing")
-    #stadtEntwicklung("Pasakha")
-    scipyRegression("Beijing")
-    scipyRegression("Pasakha")
+    stadtEntwicklung("Beijing")
+    stadtEntwicklung("Pasakha")
     uebersichtMessstationen()
     uebersichtWertVerteilung()
     
