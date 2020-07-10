@@ -88,7 +88,7 @@ def einkommensVergleich(df:pd.DataFrame, limit:int, df_info:str):
     zwischenlinie(length)
     
     #Überschriften ausgeben, format-Methode, um String-Formatter nach Variable auszurichten
-    format = "# %%%ds" % maxCon
+    format = "# %%%ds" % maxCon # -> %10s
     print(format % "Continent", end = " ")
     print("# %5s" % "LMIC", end = " ")
     print("# %9s #" % "HIC")
@@ -333,7 +333,7 @@ def aufbereitung():
         df["HIC"]=df.Region.str.contains('HIC')
         df.columns=cols
         #Bereinigen der Region Spalte
-        df.region= df.region.str.split('(').str[0]
+        df.region= df.region.str.split('(').str[0].str.strip()
         
         #Measured zu einem logischen Attribut machen
         df.measured=df.measured.str.contains('measured', case=False)
