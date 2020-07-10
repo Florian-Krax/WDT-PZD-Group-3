@@ -142,6 +142,7 @@ def stadtEntwicklung(stadt: str):
     
     frames = {"PM10": pm10, "PM2.5": pm25}
     color = ["blue", "red"]
+    #for c, key in zip(color, frames):
     for index, key in enumerate(frames):
         df = frames[key]
         data = df.loc[df["city"] == stadt]
@@ -345,8 +346,7 @@ def aufbereitung():
         df.temp_coverage = df.temp_coverage.fillna(0)
         df.temp_coverage= df.temp_coverage.astype(str)
         temp = list(df.temp_coverage.unique())
-        temp.sort()
-        for index, cover in enumerate(temp):
+        for index, cover in enumerate(sorted(temp)):
             df.temp_coverage.replace(cover, index, inplace = True)   
         df.monitor_station_count= [GetStationCount(x) for x in df.monitor_station_count]
 
