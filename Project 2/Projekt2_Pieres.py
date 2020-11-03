@@ -50,7 +50,9 @@ class Corona:
             if diff > treshold:
                 c+= 1
         return c
-
+    
+    def dailyInfected(self, country: str, state = "total"):
+        pass
     def daysAboveWeek(self, inf: pd.DataFrame, treshold: int) -> int:
         c = 0
         for index in range(-2,-9,-1):
@@ -77,7 +79,7 @@ class Corona:
         print("|\n", end="")
         print("".join(c for c in itertools.repeat("-", 94)))
 
-    def print_statistics(self, country: str, state: str, treshold = 1000):
+    def print_statistics(self, country: str, state = "total", treshold = 1000):
 
         #Modul tabulate könnte auch installiert und verwendet werden
 
@@ -142,37 +144,39 @@ class Corona:
         plt.legend(loc="best")
         plt.show()
      
-    def plot_current_infected(self, country: str, state: str, log: bool, ticks = 24):
-        inf = self.prep(self.inf, country, state)
-        rec = self.prep(self.rec, country, state)
-        dt = self.prep(self.dt, country, state)
-        ill = inf.iloc[:,4:] - rec.iloc[:,4:] - dt.iloc[:,4:]
-        col = inf.iloc[:,4:].columns.values
-        plt.title(str("Corona in " + country + " - " + state))
-        if log == True: plt.yscale("log")
-        plt.xticks(range(0,len(col),ticks), col[::ticks])
-        plt.plot(col, ill.loc[country], "k", label ="Currently Infected")
+    def plot_current_infected(self, country: list, state = "total", log = False, ticks = 24):
+        for c in country:
+            inf = self.prep(self.inf, c, state)
+            rec = self.prep(self.rec, c, state)
+            dt = self.prep(self.dt, c, state)
+            ill = inf.iloc[:,4:] - rec.iloc[:,4:] - dt.iloc[:,4:]
+            col = inf.iloc[:,4:].columns.values
+            if log == True: plt.yscale("log")
+            plt.plot(col, ill.loc[c], label =c)
+        plt.xticks(range(0,len(col),ticks), col[::ticks], rotation = 45)
+        plt.title("Currently infected")
         plt.legend(loc="best")
         plt.show()
       
-    def plot_diff(self, country: str, state: str, log: bool, ticks=24):
-        inf = self.prep(self.inf, country, state)
-        rec = self.prep(self.rec, country, state)
-        dt = self.prep(self.dt, country, state)
-        diffInf = []
-        diffRec = []
-        diffDt = []
-        col = inf.iloc[:,3:].columns.values
-        for index in range(0,len(col)):
-            diffInf.append(inf.iloc[0,index+3] - inf.iloc[0,index+2])
-            diffRec.append(rec.iloc[0,index+3] - rec.iloc[0,index+2])
-            diffDt.append(dt.iloc[0,index+3] - dt.iloc[0,index+2])
-        if log == True: plt.yscale("log")
-        plt.title(str("Corona in " + country + " - " + state))
-        plt.xticks(range(0,len(col), ticks), col[::ticks])
-        plt.plot(col, diffInf, "r", label="Infected")
-        plt.plot(col, diffRec, "g", label ="Recovered")
-        plt.plot(col, diffDt, "k", label ="Deaths")
+    def plot_diff(self, country: list, state = "total", log = False, ticks=24):
+        for c in country:
+            inf = self.prep(self.inf, c, state)
+            #rec = self.prep(self.rec, country, state)
+            #dt = self.prep(self.dt, country, state)
+            diffInf = []
+            diffRec = []
+            diffDt = []
+            col = inf.iloc[:,3:].columns.values
+            for index in range(0,len(col)):
+                diffInf.append(inf.iloc[0,index+3] - inf.iloc[0,index+2])
+                #diffRec.append(rec.iloc[0,index+3] - rec.iloc[0,index+2])
+                #diffDt.append(dt.iloc[0,index+3] - dt.iloc[0,index+2])
+            if log == True: plt.yscale("log")
+            plt.plot(col, diffInf, label=c)
+            #plt.plot(col, diffRec, "g", label ="Recovered")
+            #plt.plot(col, diffDt, "k", label ="Deaths")
+        plt.xticks(range(0,len(col), ticks), col[::ticks], rotation = 45)
+        plt.title(str("Daily infected"))
         plt.legend(loc="best")
         plt.show()
     
@@ -217,7 +221,8 @@ class Corona:
             inf.iloc[0, index-1] = inf.iloc[0, index] - inf.iloc[0, index -1]
         for index in range(2, len(col)-1):
             datum = datetime.datetime.strptime(col[index], "%m/%d/%y")
-            if(datum.weekday() == 5 or datum.weekday() == 6):
+            #Weekday 0 und 6 für Sonntag, Montag, da immer vom Vortrag übermittelt wird
+            if(datum.weekday() == 0 or datum.weekday() == 6):
                 inf = inf.rename(columns={col[index]: "Weekend"})
                 weekend.append(inf.iloc[0, index])
             else:
@@ -228,6 +233,17 @@ class Corona:
         print("Durchschnittliche Anzahl Infizierte am Wochenende:\t", round(np.array(weekend).sum()/len(weekend),2))                                       
         
 def main():
+    c = Corona()
+    laender = ["Germany", "Singapore", "Thailand", "Australia", "New Zealand", 
+               "China"]
+    for l in laender:
+        c.print_statistics(l)
+    c.print_statistics("India")
+    c.plot_current_infected(laender)
+    c.plot_current_infected(["India"])
+    c.plot_diff(laender)
+    c.plot_diff(["India"])
+'''
     c = Corona()
     
     c.print_statistics("US", "total")
@@ -240,7 +256,7 @@ def main():
     c.globalTotal()
     
     #c.weekend("Germany", "total")
-    
+'''    
     
 if __name__ == "__main__":
     main()
