@@ -20,7 +20,7 @@ x = inf[col[3]]
 y = inf[col[2]]
 sc = plt.scatter(x,y,c="red", s=10, label="Infected", zorder=1)
 
-img = plt.imread("weltkarteV4.png")
+img = plt.imread("C:/Users/hendr/Documents/Master/PZD/WDT-PZD-Group-3/Project 2/weltkarteV4.png")
 plt.imshow(img, extent=[-150,190,-60,100], zorder=0)
 plt.tight_layout()
 plt.legend(loc = "upper right")
